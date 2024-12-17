@@ -31,11 +31,7 @@ $result = mysqli_query($conn, $sql);
             <div class="hi">
                 <a href="userhome.php" class="hello">Home</a>
                 <a href="view_service_providers.php" class="hello">View Service Providers</a>
-                <!-- <a href="view_bookings.php" class="hello">View Booking Appointments</a> -->
-                <!-- <a href="statistics.php" class="hello">Statistics</a> -->  
-            
                 <a href="appointment_status.php" class="hello">Appointment Status</a>
-
                 <a href="userprofile.php" class="hello">Edit Profile</a>
                 <a href="logout.php" class="hello">Logout</a>
             </div>
@@ -48,17 +44,28 @@ $result = mysqli_query($conn, $sql);
                 <?php
                 if (mysqli_num_rows($result) > 0) {
                     while ($booking = mysqli_fetch_assoc($result)) {
+
+                        // Check if payment exists for the current appointment
+                        $appointment_id = $booking['id'];
+                        $payment_check_sql = "SELECT * FROM payments WHERE appointment_id = '$appointment_id'";
+                        $payment_result = mysqli_query($conn, $payment_check_sql);
+                        $is_paid = mysqli_num_rows($payment_result) > 0;
+
                         echo "<li>";
                         echo "<strong>Staff:</strong> " . htmlspecialchars($booking['staff_name']) . "<br>";
                         echo "<strong>Work Description:</strong> " . htmlspecialchars($booking['work_description']) . "<br>";
                         echo "<strong>Appointment Date:</strong> " . htmlspecialchars($booking['appointment_date']) . "<br>";
                         echo "<strong>Status:</strong> " . htmlspecialchars($booking['status']) . "<br>";
 
-                        // Show "Pay Advance" button if status is confirmed
+                        // Show "Pay Advance" button only if status is confirmed and payment is not made
                         if ($booking['status'] === 'confirmed') {
-                            echo "<a href='pay_advance.php?id=" . $booking['id'] . "' class='pay-button'>Pay Advance</a>";
+                            if ($is_paid) {
+                                echo "<button class='pay-button' disabled>Advance Paid</button>";
+                            } else {
+                                echo "<a href='pay_advance.php?id=" . $booking['id'] . "' class='pay-button'>Pay Advance</a>";
+                            }
                         }
-                        
+
                         echo "</li><hr>";
                     }
                 } else {
